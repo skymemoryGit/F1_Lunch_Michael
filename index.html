@@ -194,7 +194,7 @@
 
             function updateOptions() {
                 const rawInput = foodInput.value.trim();
-                const defaultOptions = "Pizza 'Papaya', Burger 'OKX', Monster, Tacos 'Velo'";
+                const defaultOptions = "Riso 'Senza Salsa', Petto di Pollo 'Griglia', Insalata, Pasta 'Ragu'";
                 options = rawInput ? rawInput.split(',').map(item => item.trim()).filter(item => item) : defaultOptions.split(',').map(item => item.trim());
                 arc = (2 * Math.PI) / options.length;
                 drawWheel();
