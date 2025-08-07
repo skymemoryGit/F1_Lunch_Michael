@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michael-McLaren F1 's Lunch Roulette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS con Tema McLaren F1 */
+        :root {
+            --mclaren-papaya: #FF8700;
+            --mclaren-blue: #44B2E4;
+            --mclaren-black: #1C1C1E;
+            --mclaren-anthracite: #333333;
+            --mclaren-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Titillium Web', sans-serif;
+            background-color: var(--mclaren-black);
+            color: var(--mclaren-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .main-container {
+            background: var(--mclaren-anthracite);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid var(--mclaren-papaya);
+            box-shadow: 0 10px 40px rgba(255, 135, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: var(--mclaren-papaya);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .subtitle {
+            color: #ccc;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .input-section { margin-bottom: 20px; }
+        .input-section label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--mclaren-blue); }
+        #food-input { 
+            width: calc(100% - 24px); 
+            padding: 12px; 
+            border: 2px solid #555; 
+            background-color: #222;
+            color: var(--mclaren-white);
+            border-radius: 8px; 
+            font-size: 16px; 
+            transition: border-color 0.3s; 
+        }
+        #food-input:focus { outline: none; border-color: var(--mclaren-papaya); }
+
+        .wheel-container { position: relative; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        #wheel-canvas { transition: transform 5s cubic-bezier(0.2, 0.8, 0.3, 1); }
+        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--mclaren-papaya); z-index: 10; }
+        #spin-button { position: absolute; width: 80px; height: 80px; border-radius: 50%; background-color: var(--mclaren-black); border: 6px solid #444; color: var(--mclaren-white); font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); transition: all 0.2s ease-in-out; z-index: 5; text-transform: uppercase; }
+        #spin-button:hover { background-color: var(--mclaren-papaya); border-color: var(--mclaren-black); }
+        #spin-button:active { transform: scale(0.95); }
+        #spin-button:disabled { cursor: not-allowed; background-color: #555; }
+
+        /* Modalità Gara */
+        .marathon-mode { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #555; }
+        .marathon-mode h2 { margin-top: 0; color: var(--mclaren-papaya); }
+        .marathon-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; }
+        #spin-count { padding: 10px; font-size: 16px; width: 80px; text-align: center; border: 2px solid #555; border-radius: 8px; background-color: #222; color: var(--mclaren-white); }
+        #marathon-button { padding: 12px 20px; font-size: 16px; font-weight: 700; background-color: var(--mclaren-blue); color: var(--mclaren-black); border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s; text-transform: uppercase; }
+        #marathon-button:hover { background-color: #66c8f5; }
+        #marathon-button:disabled { background-color: #555; cursor: not-allowed; }
+
+        #marathon-results { text-align: left; max-height: 200px; overflow-y: auto; border: 1px solid #444; border-radius: 8px; padding: 15px; background-color: #2a2a2a; }
+        #marathon-results h3 { margin-top: 0; }
+        #results-list { list-style-type: none; padding: 0; margin: 0; }
+        #results-list li { padding: 8px 0; border-bottom: 1px solid #444; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        #results-list li:last-child { border-bottom: none; }
+        #results-list .rank { font-size: 20px; margin-right: 10px; color: var(--mclaren-papaya); }
+        #results-list .count { background-color: var(--mclaren-blue); color: var(--mclaren-black); padding: 2px 8px; border-radius: 5px; font-size: 14px; font-weight: 700; }
+        
+        /* Pop-up */
+        #result-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 1; transition: opacity 0.3s ease; }
+        #result-popup.hidden { opacity: 0; pointer-events: none; }
+        .popup-content { background: var(--mclaren-anthracite); padding: 30px 40px; border-radius: 12px; text-align: center; position: relative; border: 2px solid var(--mclaren-blue); }
+        .popup-content h2 { margin-top: 0; }
+        #popup-title { color: var(--mclaren-blue); }
+        #final-result { font-size: 28px; font-weight: 700; color: var(--mclaren-papaya); margin: 10px 0; }
+        #close-popup { position: absolute; top: 10px; right: 15px; font-size: 28px; color: #777; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>Michael-McLaren F1 Lunch Roulette</h1>
+        <p class="subtitle">Cosa mangerà Michael-Lando oggi? Gira la ruota!</p>
+        
+        <div class="input-section">
+            <label for="food-input">Aggiungi opzioni al Paddock:</label>
+            <input type="text" id="food-input" placeholder="Pizza 'Papaya', Burger 'OKX', Monster, Tacos 'Velo'...">
+        </div>
+
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <canvas id="wheel-canvas" width="400" height="400"></canvas>
+            <button id="spin-button">Gira!</button>
+        </div>
+        
+        <div class="marathon-mode">
+            <h2>🏁 Modalità Gara</h2>
+            <div class="marathon-controls">
+                <input type="number" id="spin-count" value="10" min="1" max="1000">
+                <button id="marathon-button">Inizia la Gara</button>
+            </div>
+            <div id="marathon-results">
+                <h3>Classifica Giri Veloci:</h3>
+                <ul id="results-list">
+                    <li>Nessun giro ancora effettuato.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="result-popup" class="hidden">
+            <div class="popup-content">
+                <span id="close-popup">&times;</span>
+                <h2 id="popup-title">Il Pit Stop di oggi è per...</h2>
+                <p id="final-result"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('wheel-canvas');
+            const ctx = canvas.getContext('2d');
+            const foodInput = document.getElementById('food-input');
+            const spinButton = document.getElementById('spin-button');
+            const resultPopup = document.getElementById('result-popup');
+            const popupTitle = document.getElementById('popup-title');
+            const finalResult = document.getElementById('final-result');
+            const closePopup = document.getElementById('close-popup');
+            const marathonButton = document.getElementById('marathon-button');
+            const spinCountInput = document.getElementById('spin-count');
+            const resultsList = document.getElementById('results-list');
+
+            let options = [];
+            const colors = ["#FF8700", "#44B2E4", "#555555", "#FFFFFF", "#FF5733", "#C70039", "#900C3F", "#581845"];
+            let startAngle = 0;
+            let arc = 0;
+            let isSpinning = false;
+            let isMarathonRunning = false;
+            let spinsRemaining = 0;
+            let marathonResults = {};
+
+            function drawWheel() {
+                const [outsideRadius, textRadius] = [180, 140];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#1C1C1E';
+                ctx.lineWidth = 3;
+                ctx.font = 'bold 16px Titillium Web';
+
+                for (let i = 0; i < options.length; i++) {
+                    const angle = startAngle + i * arc;
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, outsideRadius, angle, angle + arc, false);
+                    ctx.arc(canvas.width / 2, canvas.height / 2, 0, angle + arc, angle, true);
+                    ctx.stroke();
+                    ctx.fill();
+                    ctx.save();
+                    ctx.fillStyle = (ctx.fillStyle === '#ffffff') ? '#000000' : '#ffffff';
+                    ctx.translate(canvas.width / 2 + Math.cos(angle + arc / 2) * textRadius, canvas.height / 2 + Math.sin(angle + arc / 2) * textRadius);
+                    ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                    const text = options[i];
+                    ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+                    ctx.restore();
+                }
+            }
+
+            function updateOptions() {
+                const rawInput = foodInput.value.trim();
+                const defaultOptions = "Pizza 'Papaya', Burger 'OKX', Monster, Tacos 'Velo'";
+                options = rawInput ? rawInput.split(',').map(item => item.trim()).filter(item => item) : defaultOptions.split(',').map(item => item.trim());
+                arc = (2 * Math.PI) / options.length;
+                drawWheel();
+            }
+
+            function rotate(spinDuration) {
+                const spinAngleStart = Math.random() * 10 + 10;
+                let spinTime = 0;
+
+                function animate() {
+                    spinTime += 30;
+                    if (spinTime >= spinDuration) {
+                        stopRotate();
+                        return;
+                    }
+                    const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinDuration);
+                    startAngle += (spinAngle * Math.PI / 180);
+                    drawWheel();
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            }
+
+            function stopRotate() {
+                const degrees = startAngle * 180 / Math.PI + 90;
+                const arcd = arc * 180 / Math.PI;
+                const index = Math.floor((360 - degrees % 360) / arcd);
+                const result = options[index];
+
+                if (isMarathonRunning) {
+                    handleMarathonResult(result);
+                } else {
+                    isSpinning = false;
+                    setButtonsState(true);
+                    showPopup("Il Pit Stop di oggi è per...", result);
+                }
+            }
+
+            function easeOut(t, b, c, d) {
+                const ts = (t /= d) * t;
+                const tc = ts * t;
+                return b + c * (tc + -3 * ts + 3 * t);
+            }
+            
+            function showPopup(title, content) {
+                popupTitle.textContent = title;
+                finalResult.textContent = content;
+                resultPopup.classList.remove('hidden');
+            }
+            
+            function setButtonsState(enabled) {
+                spinButton.disabled = !enabled;
+                marathonButton.disabled = !enabled;
+            }
+
+            function startMarathon() {
+                if (isSpinning || options.length < 2) return;
+                
+                isSpinning = true;
+                isMarathonRunning = true;
+                setButtonsState(false);
+
+                spinsRemaining = parseInt(spinCountInput.value, 10);
+                if (isNaN(spinsRemaining) || spinsRemaining < 1 || spinsRemaining > 1000) {
+                    alert("Per favore, inserisci un numero di giri valido (1-1000).");
+                    isSpinning = false;
+                    isMarathonRunning = false;
+                    setButtonsState(true);
+                    return;
+                }
+                
+                marathonResults = {};
+                options.forEach(option => { marathonResults[option] = 0; });
+                updateLeaderboard();
+                
+                rotate(1000); 
+            }
+            
+            function handleMarathonResult(result) {
+                marathonResults[result]++;
+                spinsRemaining--;
+                updateLeaderboard();
+                
+                if (spinsRemaining > 0) {
+                    setTimeout(() => rotate(1000), 100); 
+                } else {
+                    endMarathon();
+                }
+            }
+
+            function updateLeaderboard() {
+                resultsList.innerHTML = '';
+                const sortedResults = Object.entries(marathonResults).sort(([,a],[,b]) => b-a);
+                const rankEmojis = ['🥇', '🥈', '🥉'];
+                sortedResults.forEach(([name, count], index) => {
+                    const li = document.createElement('li');
+                    const rank = rankEmojis[index] || `<span style="font-size:16px; color:#999;">${index + 1}.</span>`;
+                    li.innerHTML = `<span><span class="rank">${rank}</span> ${name}</span> <span class="count">${count}</span>`;
+                    resultsList.appendChild(li);
+                });
+            }
+            
+            function endMarathon() {
+                isSpinning = false;
+                isMarathonRunning = false;
+                setButtonsState(true);
+                
+                const winner = Object.keys(marathonResults).reduce((a, b) => marathonResults[a] > marathonResults[b] ? a : b);
+                showPopup("🏆 Il Campione della Gara è:", winner);
+            }
+
+            spinButton.addEventListener('click', () => {
+                if (isSpinning || options.length < 2) return;
+                isSpinning = true;
+                setButtonsState(false);
+                rotate(5000);
+            });
+
+            marathonButton.addEventListener('click', startMarathon);
+            closePopup.addEventListener('click', () => resultPopup.classList.add('hidden'));
+            foodInput.addEventListener('input', updateOptions);
+            
+            updateOptions();
+        });
+    </script>
+</body>
+</html>
